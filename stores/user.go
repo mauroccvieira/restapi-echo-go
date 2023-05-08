@@ -11,7 +11,7 @@ import (
 type (
 	UserStore interface {
 		Get(tx *sql.Tx) ([]models.User, error)
-		// Create(tx *sql.Tx, user *models.User) (int64, error)
+		Create(tx *sql.Tx, user *models.User) (models.User, error)
 		// UpdateById(tx *sql.Tx, user *models.User) (int64, error)
 		// DeleteById(tx *sql.Tx, id int) error
 	}
@@ -46,4 +46,28 @@ func (s *userStore) Get(tx *sql.Tx) ([]models.User, error) {
 	}
 
 	return users, nil
+}
+
+func (s *userStore) Create(tx *sql.Tx, user *models.User) (models.User, error) {
+	var err error
+
+	query := "INSERT INTO users (name, username, password) VALUES ($1, $2, $3) RETURNING id"
+	if err != nil {
+		return models.User{}, err
+	}
+
+	var id int64
+
+	if tx != nil {
+		err = tx.QueryRow(query, user.Name, user.Username, user.Password).Scan(&id)
+	} else {
+		err = s.QueryRow(query, user.Name, user.Username, user.Password).Scan(&id)
+	}
+
+	if err != nil {
+		logger.Error("failed to create user", zap.Error(err))
+		return models.User{}, err
+	}
+	userCreated := models.User{ID: int(id), Name: user.Name, Username: user.Username, Password: user.Password}
+	return userCreated, nil
 }

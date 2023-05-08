@@ -11,6 +11,37 @@ definitions:
       username:
         type: string
     type: object
+  requests.CreateUserRequest:
+    properties:
+      name:
+        description: |-
+          Name of the user
+          required: true
+        type: string
+      password:
+        description: |-
+          Password of the user
+          required: true
+        type: string
+      username:
+        description: |-
+          Username of the user
+          required: true
+        type: string
+    required:
+    - name
+    - password
+    - username
+    type: object
+  responses.CreateUserResponse:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      username:
+        type: string
+    type: object
   utils.Error:
     properties:
       message:
@@ -43,6 +74,35 @@ paths:
           schema:
             $ref: '#/definitions/utils.Error'
       summary: Fetch a list of all users.
+      tags:
+      - User
+    post:
+      consumes:
+      - application/json
+      description: Create an user.
+      parameters:
+      - description: User
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/requests.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/responses.CreateUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Error'
+      summary: Create an user.
       tags:
       - User
 schemes:

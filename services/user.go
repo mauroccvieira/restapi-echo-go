@@ -8,8 +8,8 @@ import (
 type (
 	UserService interface {
 		GetUsers() ([]models.User, error)
+		CreateUser(user *models.User) (models.User, error)
 		// GetUser(id int) (models.User, error)
-		// CreateUser(user models.User) (models.User, error)
 		// UpdateUser(user models.User) (models.User, error)
 		// DeleteUser(id int) (models.User, error)
 	}
@@ -24,18 +24,7 @@ func (s *userService) GetUsers() ([]models.User, error) {
 	return r, err
 }
 
-// func (s *userService) GetUser(id int) (models.User, error) {
-// 	return models.User{}, nil
-// }
-
-// func (s *userService) CreateUser(user models.User) (models.User, error) {
-// 	return models.User{}, nil
-// }
-
-// func (s *userService) UpdateUser(user models.User) (models.User, error) {
-// 	return models.User{}, nil
-// }
-
-// func (s *userService) DeleteUser(id int) (models.User, error) {
-// 	return models.User{}, nil
-// }
+func (s *userService) CreateUser(user *models.User) (models.User, error) {
+	r, err := s.stores.User.Create(nil, user)
+	return r, err
+}

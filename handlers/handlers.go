@@ -32,6 +32,7 @@ func SetApi(e *echo.Echo, h *Handlers, m echo.MiddlewareFunc) {
 
 	// Users
 	g.GET("/users", h.UserHandler.GetUsers)
+	g.POST("/users", h.UserHandler.CreateUser)
 
 }
 
