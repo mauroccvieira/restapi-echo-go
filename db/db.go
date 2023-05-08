@@ -39,13 +39,41 @@ func New(development bool) (*sql.DB, error) {
 
 	// Run all seed sql file if on dev
 	if development {
+		if _, err := db.Exec(`CREATE TABLE IF NOT EXISTS seeds (
+			id SERIAL PRIMARY KEY,
+			filename TEXT NOT NULL,
+			created_at TIMESTAMP DEFAULT NOW()
+		);`); err != nil {
+			return nil, err
+		}
+
 		seedFiles, err := os.ReadDir("db/seed/")
 		if err != nil {
 			logger.Error("failed to read seed files", zap.Error(err))
 		}
 
+		executedSeeds := make(map[string]bool)
+		rows, err := db.Query("SELECT filename FROM seeds")
+		if err != nil {
+			logger.Error("failed to query seeds table", zap.Error(err))
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var filename string
+			if err := rows.Scan(&filename); err != nil {
+				logger.Error("failed to scan seeds table row", zap.Error(err))
+			}
+			executedSeeds[filename] = true
+		}
+
 		for _, f := range seedFiles {
-			c, err := os.ReadFile("db/seed/" + f.Name())
+			filename := f.Name()
+			if executedSeeds[filename] {
+				continue
+			}
+
+			c, err := os.ReadFile("db/seed/" + filename)
 			if err != nil {
 				logger.Error("failed to read seed file", zap.Error(err))
 			}
@@ -55,6 +83,10 @@ func New(development bool) (*sql.DB, error) {
 			_, err = db.Exec(sqlCode)
 			if err != nil {
 				logger.Error("failed to seed database", zap.Error(err))
+			}
+
+			if _, err := db.Exec("INSERT INTO seeds (filename) VALUES ($1)", filename); err != nil {
+				logger.Error("failed to insert row into seeds table", zap.Error(err))
 			}
 		}
 
