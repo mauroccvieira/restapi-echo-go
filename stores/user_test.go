@@ -3,6 +3,7 @@ package stores
 import (
 	"testing"
 
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/mauroccvieira/restapi-echo-go/db"
 	"github.com/mauroccvieira/restapi-echo-go/models"
 	"github.com/stretchr/testify/assert"
@@ -35,32 +36,33 @@ func TestUserStore_GetSuccessCase(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-// func TestUserStore_CreateSuccessCase(t *testing.T) {
-// 	mockDB, mock := db.Mock()
-// 	defer mockDB.Close()
+func TestUserStore_CreateSuccessCase(t *testing.T) {
+	mockDB, mock := db.Mock()
+	defer mockDB.Close()
 
-// 	a := &models.User{
-// 		ID:      1,
-// 		Name:    "test",
-// 		Country: "US",
-// 	}
+	a := &models.User{
+		ID:       1,
+		Name:     "Testname",
+		Username: "Usernametest",
+		Password: "Passwordtest",
+	}
 
-// 	mock.NewRows([]string{"id", "name", "country"})
-// 	mock.
-// 		ExpectQuery("INSERT INTO users (name, country) VALUES ($1, $2) RETURNING id").
-// 		WithArgs(a.Name, a.Country).
-// 		WillReturnRows(
-// 			sqlmock.NewRows([]string{"id"}).AddRow(1),
-// 		)
+	mock.NewRows([]string{"id", "name", "username", "password"})
+	mock.
+		ExpectQuery("INSERT INTO users (name, username, password) VALUES ($1, $2, $3) RETURNING id").
+		WithArgs(a.Name, a.Username, a.Password).
+		WillReturnRows(
+			sqlmock.NewRows([]string{"id"}).AddRow(1),
+		)
 
-// 	s := stores.New(mockDB)
+	s := New(mockDB)
 
-// 	r, err := s.User.Create(nil, a)
+	r, err := s.User.Create(nil, a)
 
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, int64(1), r)
-// 	assert.NoError(t, mock.ExpectationsWereMet())
-// }
+	assert.NoError(t, err)
+	assert.Equal(t, *a, r)
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
 
 // func TestUserStore_UpdateByIdSuccessCase(t *testing.T) {
 // 	mockDB, mock := db.Mock()
