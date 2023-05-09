@@ -16,12 +16,23 @@ type (
 	UserHandler interface {
 		GetUsers(c echo.Context) error
 		CreateUser(c echo.Context) error
+		SetApi(e *echo.Echo)
 	}
 
 	userHandler struct {
 		services.UserService
 	}
 )
+
+func (h *userHandler) SetApi(e *echo.Echo) {
+	g := e.Group("/api/v1")
+	// g.Use(m)
+
+	// Users
+	g.GET("/users", h.GetUsers)
+	g.POST("/users", h.CreateUser)
+
+}
 
 // GetUsers
 //

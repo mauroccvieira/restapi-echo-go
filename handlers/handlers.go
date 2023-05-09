@@ -10,6 +10,10 @@ import (
 	"github.com/mauroccvieira/restapi-echo-go/services"
 )
 
+type UseHandler interface {
+	SetApi(e *echo.Echo)
+}
+
 type Handlers struct {
 	UserHandler
 }
@@ -22,17 +26,26 @@ func New(s *services.Services) *Handlers {
 
 func SetDefault(e *echo.Echo) {
 	e.GET("/healthcheck", HealthCheckHandler)
-	e.GET("/swagger/*", echoSwagger.WrapHandler)
+	setDocs(e)
 
 }
 
-func SetApi(e *echo.Echo, h *Handlers, m echo.MiddlewareFunc) {
-	g := e.Group("/api/v1")
-	// g.Use(m)
+func setDocs(e *echo.Echo) {
+	e.GET("/docs", func(c echo.Context) error {
+		return c.Redirect(301, "/docs/index.html")
+	})
+	e.GET("/docs/*", echoSwagger.WrapHandler)
+}
 
-	// Users
-	g.GET("/users", h.UserHandler.GetUsers)
-	g.POST("/users", h.UserHandler.CreateUser)
+func SetApi(e *echo.Echo, h *Handlers, m echo.MiddlewareFunc) {
+
+	hs := make([]UseHandler, 0)
+
+	hs = append(hs, h.UserHandler)
+
+	for _, h := range hs {
+		h.SetApi(e)
+	}
 
 }
 
